@@ -12,3 +12,8 @@ variable "bucket_name" {
   type        = string
   description = "State bucket name"
 }
+
+variable "github_repository" {
+  type        = string
+  description = "Github repository name"
+}
