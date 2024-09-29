@@ -1,7 +1,5 @@
 resource "aws_s3_bucket" "state" {
   bucket = var.bucket_name
-
-  tags = local.common_tags
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "state" {

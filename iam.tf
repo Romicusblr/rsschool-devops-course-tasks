@@ -26,7 +26,6 @@ resource "aws_iam_role" "GithubActionsRole" {
       }
     ]
   })
-  tags = local.common_tags
 }
 
 locals {
