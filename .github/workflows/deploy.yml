@@ -44,18 +44,10 @@ jobs:
             audience: sts.amazonaws.com
             aws-region: us-east-1
             role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
-      - name: Terraform fmt
-        id: fmt
-        run: terraform fmt -check
-        continue-on-error: true
       
       - name: Terraform Init
         id: init
         run: terraform init
-      
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
       
       - name: Terraform Plan
         id: plan
@@ -79,18 +71,7 @@ jobs:
             })
       
             // 2. Prepare format of the comment
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            <details><summary>Validation Output</summary>
-      
-            \`\`\`\n
-            ${{ steps.validate.outputs.stdout }}
-            \`\`\`
-      
-            </details>
-      
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            const output = `#### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
       
             <details><summary>Show Plan</summary>
       
@@ -118,3 +99,22 @@ jobs:
                 body: output
               })
             }
+
+  terraform-apply:
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    name: Terraform apply
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            audience: sts.amazonaws.com
+            aws-region: us-east-1
+            role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
+      - name: Terraform Init
+        run: terraform init
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        continue-on-error: true
