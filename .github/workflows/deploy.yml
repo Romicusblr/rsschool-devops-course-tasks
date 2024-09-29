@@ -1,0 +1,42 @@
+name: deploy
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  TF_VAR_account_id: ${{ vars.ACCOUNT_ID }}
+  TF_VAR_region: ${{ vars.REGION }}
+  TF_VAR_bucket_name: ${{ vars.BUCKET_NAME }}
+  TF_VAR_github_repository: ${{ github.repository }}
+
+jobs:
+  terraform-check:
+    runs-on: ubuntu-latest
+    name: Terraform check
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            audience: sts.amazonaws.com
+            aws-region: us-east-1
+            role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Terraform init shared states
+        run: terraform init
+      - name: Terraform check
+        run: terraform fmt -check
+      - name: Terraform plan
+        run: terraform plan
+
