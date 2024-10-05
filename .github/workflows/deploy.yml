@@ -1,0 +1,120 @@
+name: deploy
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  TF_VAR_account_id: ${{ vars.ACCOUNT_ID }}
+  TF_VAR_region: ${{ vars.REGION }}
+  TF_VAR_bucket_name: ${{ vars.BUCKET_NAME }}
+  TF_VAR_github_repository: ${{ github.repository }}
+
+jobs:
+  terraform-check:
+    runs-on: ubuntu-latest
+    name: Terraform check
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Terraform check
+        run: terraform fmt -check
+
+  terraform-plan:
+    needs: terraform-check
+    runs-on: ubuntu-latest
+    name: Terraform plan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            audience: sts.amazonaws.com
+            aws-region: us-east-1
+            role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
+      
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        continue-on-error: true
+      - uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Terraform Format and Style')
+            })
+      
+            // 2. Prepare format of the comment
+            const output = `#### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+      
+            <details><summary>Show Plan</summary>
+      
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+      
+            </details>
+      
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+      
+            // 3. If we have a comment, update it, otherwise create a new one
+            if (botComment) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
+
+  terraform-apply:
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    name: Terraform apply
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            audience: sts.amazonaws.com
+            aws-region: us-east-1
+            role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
+      - name: Terraform Init
+        run: terraform init
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        continue-on-error: true
