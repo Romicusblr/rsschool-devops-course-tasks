@@ -1,4 +1,4 @@
-.PHONY: create-s3-bucket init
+.PHONY: create-s3-bucket init plan apply destroy
 
 REGION=us-east-1
 PROFILE=rss-devops
