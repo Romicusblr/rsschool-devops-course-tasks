@@ -3,9 +3,6 @@ provider "aws" {
   region              = var.region
 
   default_tags {
-    tags = {
-      ManagedBy = "terraform"
-      Project   = "rsschool-devops"
-    }
+    tags = local.common_tags
   }
 }
