@@ -4,10 +4,10 @@ init:
 	terraform init
 
 plan:
-	terraform plan -var-file ../env.tfvars
+	terraform plan -var-file ../env.tfvars -var-file ./env.tfvars
 
 apply:
-	terraform apply -var-file ../env.tfvars
+	terraform apply -var-file ../env.tfvars -var-file ./env.tfvars
 
 destroy:
-	terraform destroy -var-file ../env.tfvars
+	terraform destroy -var-file ../env.tfvars -var-file ./env.tfvars
