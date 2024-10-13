@@ -1,8 +1,7 @@
 # PRIVATE
 
 resource "aws_route_table" "private" {
-  count = length(aws_subnet.private)
-
+  count  = length(aws_subnet.private)
   vpc_id = aws_vpc.main.id
 }
 
@@ -11,6 +10,13 @@ resource "aws_route_table_association" "private" {
 
   subnet_id      = element(aws_subnet.private[*].id, count.index)
   route_table_id = element(aws_route_table.private[*].id, count.index)
+}
+
+resource "aws_route" "private_nat" {
+  count                  = length(aws_subnet.private)
+  route_table_id         = element(aws_route_table.private[*].id, count.index)
+  destination_cidr_block = "0.0.0.0/0"
+  network_interface_id   = aws_instance.bastion.primary_network_interface_id
 }
 
 # PUBLIC

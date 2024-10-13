@@ -19,6 +19,14 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Allow traffic from private subnets
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [for subnet in aws_subnet.private : subnet.cidr_block]
+  }
+
   # Allow all outbound traffic
   egress {
     from_port   = 0
