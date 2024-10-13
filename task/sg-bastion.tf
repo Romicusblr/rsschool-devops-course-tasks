@@ -3,6 +3,14 @@ resource "aws_security_group" "bastion_sg" {
   description = "Allow SSH access to bastion host"
   vpc_id      = aws_vpc.main.id
 
+  # Allow ICMP ping requests
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Allow SSH access from anywhere
   ingress {
     from_port   = 22

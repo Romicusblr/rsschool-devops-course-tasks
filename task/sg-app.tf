@@ -3,6 +3,14 @@ resource "aws_security_group" "app_sg" {
   description = "Security group for the application"
   vpc_id      = aws_vpc.main.id
 
+  # Allow ICMP (ping) access
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
   # Allow SSH access
   ingress {
     from_port   = 22
