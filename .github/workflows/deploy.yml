@@ -16,9 +16,10 @@ on:
 env:
   TF_VAR_account_id: ${{ vars.ACCOUNT_ID }}
   TF_VAR_region: ${{ vars.REGION }}
-  TF_VAR_bucket_name: ${{ vars.BUCKET_NAME }}
+  TF_VAR_project: "rsschool-devops"
   TF_VAR_github_repository: ${{ github.repository }}
-  WORKING_DIR: ${{ github.workspace }}/task
+  TF_VAR_vpc_ip_block: "10.0.0.0/16"
+  tf_actions_working_dir: ${{ github.workspace }}/task
 
 jobs:
   terraform-check:
@@ -47,19 +48,17 @@ jobs:
           role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
 
       - name: Terraform Init
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: ${{ env.tf_actions_working_dir }}
         id: init
         run: terraform init
 
       - name: Terraform Plan
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: ${{ env.tf_actions_working_dir }}
         id: plan
         run: terraform plan -no-color
         continue-on-error: true
       - uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -79,7 +78,7 @@ jobs:
             <details><summary>Show Plan</summary>
 
             \`\`\`\n
-            ${process.env.PLAN}
+            ${{ steps.plan.outputs.stdout }}
             \`\`\`
 
             </details>
@@ -118,9 +117,9 @@ jobs:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
       - name: Terraform Init
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: ${{ env.tf_actions_working_dir }}
         run: terraform init
       - name: Terraform Apply
-        working-directory: ${{ env.WORKING_DIR }}
+        working-directory: ${{ env.tf_actions_working_dir }}
         run: terraform apply -auto-approve
 
