@@ -19,6 +19,7 @@ env:
   TF_VAR_project: "rsschool-devops"
   TF_VAR_github_repository: ${{ github.repository }}
   TF_VAR_vpc_ip_block: "10.0.0.0/16"
+  TF_VAR_public_key: ${{ vars.PUBLIC_KEY }}
   tf_actions_working_dir: ${{ github.workspace }}/task
 
 jobs:
