@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "state" {
-  bucket = var.bucket_name
+  bucket = "rm-rsschool-devops-tfstate"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
