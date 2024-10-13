@@ -8,13 +8,6 @@ This Terraform project is designed to provision and manage cloud infrastructure 
 - An active account with the cloud provider you intend to use (e.g., AWS, Azure, GCP).
 - Properly configured authentication credentials for the cloud provider.
 
-## Project Structure
-- `main.tf`: The primary Terraform configuration file where resources are defined.
-- `variables.tf`: Defines the input variables for the Terraform configuration.
-- `outputs.tf`: Specifies the outputs of the Terraform configuration.
-- `provider.tf`: Configures the provider (e.g., AWS, Azure, GCP) for Terraform.
-- `Makefile`: Contains commands to simplify the execution of Terraform scripts.
-
 ## Running the Scripts from Makefile
 The `Makefile` includes several commands to manage the Terraform workflow. Below are the primary commands:
 
@@ -43,8 +36,3 @@ The `Makefile` includes several commands to manage the Terraform workflow. Below
   ```sh
   make destroy
   ```
-
-## Created Resources
-This project create and manage cloud resources:
-- Storage Bucket
-- IAM policy for github workflow with OIDC provider
