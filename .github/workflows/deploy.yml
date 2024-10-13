@@ -105,7 +105,9 @@ jobs:
 
   terraform-apply:
     needs: terraform-plan
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Disable auto apply
+    if: false
     runs-on: ubuntu-latest
     name: Terraform apply
     steps:
