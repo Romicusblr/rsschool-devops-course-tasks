@@ -34,22 +34,17 @@
         creates: /usr/local/bin/k3s
 
     - name: Get k3s Node Token
-      ansible.builtin.slurp:
-        src: /var/lib/rancher/k3s/server/node-token
-      register: k3s_token
+      ansible.builtin.command: cat /var/lib/rancher/k3s/server/node-token
+      register: k3s_token_raw
+      changed_when: false
 
     - name: Set k3s token fact
       ansible.builtin.set_fact:
-        k3s_token: "{{ k3s_token['content'] | b64decode | trim }}"
-
-    - name: Fetch Control Plane IP
-      ansible.builtin.command: hostname -I
-      register: control_plane_ip
-      changed_when: false
+        k3s_token: "{{ k3s_token_raw.stdout }}"
 
     - name: Set Control Plane IP fact
       ansible.builtin.set_fact:
-        control_plane_ip: "{{ control_plane_ip.stdout.split(' ')[0] }}"
+        control_plane_ip: "{{ ansible_default_ipv4.address }}"
 
     - name: Debug Control Plane IP
       ansible.builtin.debug:
