@@ -1,0 +1,19 @@
+# Ignore Ansible temporary files
+*.retry
+
+# Ignore Ansible vault files
+*.vault
+
+# Ignore Ansible inventory files
+*.inventory
+inventory.ini
+
+# Ignore Ansible logs
+*.log
+
+# Ignore Ansible roles and collections
+roles/
+collections/
+
+# Ignore Ansible configuration files
+ansible.cfg

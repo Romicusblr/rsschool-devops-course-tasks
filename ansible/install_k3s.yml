@@ -1,0 +1,68 @@
+---
+- name: Install k3s on Control Plane
+  hosts: control_plane
+  become: true
+  tasks:
+    - name: Download k3s installation script
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /tmp/k3s_install.sh
+        mode: "0755"
+
+    - name: Install k3s on Control Plane (Master Node)
+      ansible.builtin.shell: |
+        /tmp/k3s_install.sh
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Get k3s Node Token
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: k3s_token
+
+    - name: Set k3s token fact
+      ansible.builtin.set_fact:
+        k3s_token: "{{ k3s_token['content'] | b64decode | trim }}"
+
+    - name: Fetch Control Plane IP
+      ansible.builtin.command: hostname -I
+      register: control_plane_ip
+      changed_when: false
+
+    - name: Set Control Plane IP fact
+      ansible.builtin.set_fact:
+        control_plane_ip: "{{ control_plane_ip.stdout.split(' ')[0] }}"
+
+    - name: Debug Control Plane IP
+      ansible.builtin.debug:
+        var: control_plane_ip
+
+    - name: Debug Control Plane IP
+      ansible.builtin.debug:
+        var: k3s_token
+
+- name: Install k3s on Worker Nodes
+  hosts: worker_nodes
+  become: true
+  tasks:
+    - name: Download k3s installation script for Worker Node
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /tmp/k3s_install.sh
+        mode: "0755"
+
+    - name: Debug Control Plane IP and Token on Worker Node
+      ansible.builtin.debug:
+        msg:
+          - "Control Plane IP: {{ hostvars['control-plane-node'].control_plane_ip }}"
+          - "K3S Token: {{ hostvars['control-plane-node'].k3s_token }}"
+
+    - name: Install k3s on Worker Node
+      ansible.builtin.shell: |
+        set -x
+        /tmp/k3s_install.sh
+      args:
+        creates: /usr/local/bin/k3s
+      environment:
+        K3S_URL: "https://{{ hostvars['control-plane-node'].control_plane_ip }}:6443"
+        K3S_TOKEN: "{{ hostvars['control-plane-node'].k3s_token }}"
