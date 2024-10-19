@@ -1,4 +1,22 @@
 ---
+- name: Update apt on all hosts
+  hosts: all
+  become: true
+  tasks:
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Upgrade all packages to the latest version
+      ansible.builtin.apt:
+        upgrade: dist
+
+    - name: Setup swap
+      ansible.builtin.include_role:
+        name: geerlingguy.swap
+      vars:
+        swap_file_size_mb: "2048"
+
 - name: Install k3s on Control Plane
   hosts: control_plane
   become: true
@@ -11,7 +29,7 @@
 
     - name: Install k3s on Control Plane (Master Node)
       ansible.builtin.shell: |
-        /tmp/k3s_install.sh
+        /tmp/k3s_install.sh --write-kubeconfig-mode=644
       args:
         creates: /usr/local/bin/k3s
 
