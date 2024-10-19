@@ -1,0 +1,16 @@
+[bastion]
+bastion-host ansible_user=ubuntu ansible_host=<bastion-host>
+
+[control_plane]
+control-plane-node ansible_host=<control-plane-node-host> ansible_user=ubuntu
+
+[worker_nodes]
+worker-node1 ansible_host=<worker-node1-host> ansible_user=ubuntu 
+worker-node2 ansible_host=<worker-node2-host> ansible_user=ubuntu
+
+[remote_hosts:children]
+control_plane
+worker_nodes
+
+[remote_hosts:vars]
+ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q ubuntu@<bastion-host>"'
