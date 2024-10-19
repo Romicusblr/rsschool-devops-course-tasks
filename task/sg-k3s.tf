@@ -1,5 +1,5 @@
-resource "aws_security_group" "app_sg" {
-  name        = "app-sg"
+resource "aws_security_group" "k3s_sg" {
+  name        = "k3s-sg"
   description = "Security group for the application"
   vpc_id      = aws_vpc.main.id
 
@@ -19,10 +19,10 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
-  # Allow HTTP access
+  # Allow k3s traffic
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 6443
+    to_port     = 6443
     protocol    = "tcp"
     cidr_blocks = [aws_vpc.main.cidr_block]
   }
@@ -36,6 +36,6 @@ resource "aws_security_group" "app_sg" {
   }
 
   tags = merge(local.common_tags, {
-    Name = "app-sg"
+    Name = "k3s-sg"
   })
 }
