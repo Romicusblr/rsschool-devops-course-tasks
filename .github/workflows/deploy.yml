@@ -16,8 +16,11 @@ on:
 env:
   TF_VAR_account_id: ${{ vars.ACCOUNT_ID }}
   TF_VAR_region: ${{ vars.REGION }}
-  TF_VAR_bucket_name: ${{ vars.BUCKET_NAME }}
+  TF_VAR_project: "rsschool-devops"
   TF_VAR_github_repository: ${{ github.repository }}
+  TF_VAR_vpc_ip_block: "10.0.0.0/16"
+  TF_VAR_public_key: ${{ vars.PUBLIC_KEY }}
+  tf_actions_working_dir: ${{ github.workspace }}/task
 
 jobs:
   terraform-check:
@@ -41,22 +44,22 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-            audience: sts.amazonaws.com
-            aws-region: us-east-1
-            role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
-      
+          audience: sts.amazonaws.com
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
+
       - name: Terraform Init
+        working-directory: ${{ env.tf_actions_working_dir }}
         id: init
         run: terraform init
-      
+
       - name: Terraform Plan
+        working-directory: ${{ env.tf_actions_working_dir }}
         id: plan
         run: terraform plan -no-color
         continue-on-error: true
       - uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -69,20 +72,20 @@ jobs:
             const botComment = comments.find(comment => {
               return comment.user.type === 'Bot' && comment.body.includes('Terraform Format and Style')
             })
-      
+
             // 2. Prepare format of the comment
             const output = `#### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-      
+
             <details><summary>Show Plan</summary>
-      
+
             \`\`\`\n
-            ${process.env.PLAN}
+            ${{ steps.plan.outputs.stdout }}
             \`\`\`
-      
+
             </details>
-      
+
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
-      
+
             // 3. If we have a comment, update it, otherwise create a new one
             if (botComment) {
               github.rest.issues.updateComment({
@@ -102,6 +105,9 @@ jobs:
 
   terraform-apply:
     needs: terraform-plan
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Disable auto apply
+    if: false
     runs-on: ubuntu-latest
     name: Terraform apply
     steps:
@@ -110,11 +116,13 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-            audience: sts.amazonaws.com
-            aws-region: us-east-1
-            role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
+          audience: sts.amazonaws.com
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/GithubActionsRole
       - name: Terraform Init
+        working-directory: ${{ env.tf_actions_working_dir }}
         run: terraform init
       - name: Terraform Apply
+        working-directory: ${{ env.tf_actions_working_dir }}
         run: terraform apply -auto-approve
-        continue-on-error: true
+
