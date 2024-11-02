@@ -34,6 +34,11 @@ resource "aws_instance" "k3s_worker" {
     Name = "k3s-worker-${count.index + 1}"
   })
 
+  root_block_device {
+    volume_size = 20
+    volume_type = "gp2"
+  }
+
   lifecycle {
     ignore_changes = [ami]
   }

@@ -11,19 +11,11 @@ resource "aws_security_group" "k3s_sg" {
     cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
-  # Allow SSH access
+  # Allow all traffic from VPC
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
-  }
-
-  # Allow k3s traffic
-  ingress {
-    from_port   = 6443
-    to_port     = 6443
-    protocol    = "tcp"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
