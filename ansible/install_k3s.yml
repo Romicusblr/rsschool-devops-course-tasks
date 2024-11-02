@@ -1,0 +1,81 @@
+---
+- name: Update apt on all hosts
+  hosts: all
+  become: true
+  tasks:
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Upgrade all packages to the latest version
+      ansible.builtin.apt:
+        upgrade: dist
+
+    - name: Setup swap
+      ansible.builtin.include_role:
+        name: geerlingguy.swap
+      vars:
+        swap_file_size_mb: "2048"
+
+- name: Install k3s on Control Plane
+  hosts: control_plane
+  become: true
+  tasks:
+    - name: Download k3s installation script
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /tmp/k3s_install.sh
+        mode: "0755"
+
+    - name: Install k3s on Control Plane (Master Node)
+      ansible.builtin.shell: |
+        /tmp/k3s_install.sh --write-kubeconfig-mode=644
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Get k3s Node Token
+      ansible.builtin.command: cat /var/lib/rancher/k3s/server/node-token
+      register: k3s_token_raw
+      changed_when: false
+
+    - name: Set k3s token fact
+      ansible.builtin.set_fact:
+        k3s_token: "{{ k3s_token_raw.stdout }}"
+
+    - name: Set Control Plane IP fact
+      ansible.builtin.set_fact:
+        control_plane_ip: "{{ ansible_default_ipv4.address }}"
+
+    - name: Debug Control Plane IP
+      ansible.builtin.debug:
+        var: control_plane_ip
+
+    - name: Debug Control Plane IP
+      ansible.builtin.debug:
+        var: k3s_token
+
+- name: Install k3s on Worker Nodes
+  hosts: worker_nodes
+  become: true
+  tasks:
+    - name: Download k3s installation script for Worker Node
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /tmp/k3s_install.sh
+        mode: "0755"
+
+    - name: Debug Control Plane IP and Token on Worker Node
+      ansible.builtin.debug:
+        msg:
+          - "Control Plane IP: {{ hostvars['control-plane-node'].control_plane_ip }}"
+          - "K3S Token: {{ hostvars['control-plane-node'].k3s_token }}"
+
+    - name: Install k3s on Worker Node
+      ansible.builtin.shell: |
+        set -x
+        /tmp/k3s_install.sh
+      args:
+        creates: /usr/local/bin/k3s
+      environment:
+        K3S_URL: "https://{{ hostvars['control-plane-node'].control_plane_ip }}:6443"
+        K3S_TOKEN: "{{ hostvars['control-plane-node'].k3s_token }}"
