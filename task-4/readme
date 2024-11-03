@@ -5,19 +5,16 @@ helm repo update
 # Step 2: Create Jenkins namespace
 kubectl create namespace jenkins
 
-# Step 2: Create Jenkins PV
+# Step 3: Create Jenkins PV
 kubectl apply -f jenkins-volume.yaml
 
-# Step 2: Create Jenkins SA
+# Step 4: Create Jenkins SA
 kubectl apply -f jenkins-sa.yaml
-# Step 3: Install Jenkins
-helm install jenkins jenkins/jenkins --namespace jenkins
 
-# Step 4: Monitor pods in the Jenkins namespace
-kubectl get pods --namespace jenkins -w
+# Step 5: Install Jenkins
+helm install jenkins -n jenkins -f jenkins-values.yaml jenkinsci/jenkins
 
-# Step 5: Retrieve Jenkins admin password
-kubectl exec --namespace jenkins -it $(kubectl get pods --namespace jenkins -l "app.kubernetes.io/component=jenkins-controller" -o jsonpath="{.items[0].metadata.name}") -- cat /run/secrets/additional/chart-admin-password && echo
-
-# Step 6: Port-forward Jenkins for local access
-kubectl port-forward --namespace jenkins svc/jenkins 8080:8080
+# Step 6: Get your 'admin' user password by running:
+jsonpath="{.data.jenkins-admin-password}"
+secret=$(kubectl get secret -n jenkins jenkins -o jsonpath=$jsonpath)
+echo $(echo $secret | base64 --decode)
