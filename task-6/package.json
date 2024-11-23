@@ -1,0 +1,11 @@
+{
+  "name": "my-jenkins-app",
+  "version": "1.0.0",
+  "description": "A minimal Node.js app for Jenkins pipeline testing",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"No tests specified\" && exit 0",
+    "build": "echo \"No build step specified\" && exit 0"
+  }
+}
