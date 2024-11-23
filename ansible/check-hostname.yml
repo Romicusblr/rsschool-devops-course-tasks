@@ -1,0 +1,12 @@
+---
+- name: Check access to hosts
+  hosts: all
+  tasks:
+    - name: Check hostname
+      ansible.builtin.command: hostname
+      register: result
+      changed_when: false
+
+    - name: Display hostname
+      ansible.builtin.debug:
+        var: result.stdout
