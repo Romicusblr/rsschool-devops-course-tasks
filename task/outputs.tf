@@ -23,3 +23,19 @@ output "lb_public_ip" {
   value       = aws_lb.app_alb.dns_name
 }
 
+output "ecr_repository_uri" {
+  description = "ECR repository URI"
+  value       = aws_ecr_repository.jenkins_app.repository_url
+}
+
+output "iam_access_key_id" {
+  description = "IAM access key ID"
+  value       = aws_iam_access_key.ecr_access_key.id
+  sensitive   = true
+}
+
+output "iam_secret_access_key" {
+  description = "IAM secret access key"
+  value       = aws_iam_access_key.ecr_access_key.secret
+  sensitive   = true
+}
