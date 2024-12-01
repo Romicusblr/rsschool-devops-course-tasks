@@ -1,11 +1,38 @@
 server:
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 256Mi
+  service:
+    type: NodePort
+    ports:
+      http: 80            # External port exposed by the service
+    nodePorts:
+      http: "32000"        # Fixed NodePort within 30000-32767
+  extraScrapeConfigs:
+    - job_name: 'kube-state-metrics'
+      kubernetes_sd_configs:
+        - role: service
+          namespaces:
+            names: ['monitoring']
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_service_label_app_kubernetes_io_name]
+          action: keep
+          regex: kube-state-metrics
+
+    - job_name: 'node-exporter'
+      kubernetes_sd_configs:
+        - role: pod
+          namespaces:
+            names: ['monitoring']
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+          action: keep
+          regex: prometheus-node-exporter
+alertmanager:
+  service:
+    type: NodePort
+    ports:
+      http: 80            # External port exposed by the service
+    nodePorts:
+      http: "32010"        # Fixed NodePort within 30000-32767
+
 persistence:
   enabled: true
   size: 8Gi
