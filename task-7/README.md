@@ -25,15 +25,23 @@ helm repo update
 
 
 ```sh
-helm install prometheus bitnami/prometheus -f values.yaml -n monitoring
+kubectl create namespace monitoring
+helm install prometheus bitnami/prometheus -f values-prometheus.yaml -n monitoring
 ```
 
 5. **Install Node Exporter and Kube State Metrics**
 
 ```sh
-helm install kube-state-metrics prometheus-community/kube-state-metrics --namespace monitoring
-helm install node-exporter prometheus-community/prometheus-node-exporter --namespace monitoring
+helm install kube-state-metrics prometheus-community/kube-state-metrics -n monitoring
+helm install node-exporter prometheus-community/prometheus-node-exporter -n monitoring
 ```
+
+6. **Install Grafana**
+```sh
+helm install grafana bitnami/grafana -f values-grafana.yaml -n monitoring
+```
+
+
 
 ## Verification
 
