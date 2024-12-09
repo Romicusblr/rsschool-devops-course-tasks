@@ -1,3 +1,4 @@
+# code: language=ansible
 ---
 - name: Update apt on all hosts
   hosts: all
