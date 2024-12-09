@@ -42,7 +42,6 @@ helm install node-exporter prometheus-community/prometheus-node-exporter -n moni
 1. Create admin credentials secret:
 ```sh
 kubectl create secret generic grafana-admin-credentials \
-  --from-literal=admin-user=admin \
   --from-literal=admin-password=password \
   -n monitoring
 ```
