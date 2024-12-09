@@ -25,22 +25,45 @@ helm repo update
 
 
 ```sh
-helm install prometheus bitnami/prometheus -f values.yaml -n monitoring
+kubectl create namespace monitoring
+helm install prometheus bitnami/prometheus -f values-prometheus.yaml -n monitoring
 ```
 
 5. **Install Node Exporter and Kube State Metrics**
 
 ```sh
-helm install kube-state-metrics prometheus-community/kube-state-metrics --namespace monitoring
-helm install node-exporter prometheus-community/prometheus-node-exporter --namespace monitoring
+helm install kube-state-metrics prometheus-community/kube-state-metrics -n monitoring
+helm install node-exporter prometheus-community/prometheus-node-exporter -n monitoring
 ```
 
-## Verification
+**Install Grafana**
 
-- Check all Prometheus components are running in the namespace.
-- Access the Prometheus server UI to confirm it's collecting metrics.
+### Prerequisites
+1. Create admin credentials secret:
+```sh
+kubectl create secret generic grafana-admin-credentials \
+  --from-literal=admin-user=admin \
+  --from-literal=admin-password=password \
+  -n monitoring
+```
 
-## Additional Resources
+2. Create datasource secret:
+```sh
+kubectl create secret generic datasource-secret \
+  --from-file=datasource-secret.yaml \
+  -n monitoring
+```
 
-- [Prometheus Documentation](https://prometheus.io/docs/introduction/overview/)
-- [Helm Charts for Prometheus](https://github.com/prometheus-community/helm-charts)
+3. Create dashboard ConfigMap:
+```sh
+kubectl create configmap my-dashboard-1 \
+  --from-file=my-dashboard-1.json \
+  -n monitoring
+```
+
+4. Install Grafana:
+```sh
+helm install grafana bitnami/grafana \
+  -f values-grafana.yaml \
+  -n monitoring
+```
