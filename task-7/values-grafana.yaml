@@ -20,3 +20,8 @@ dashboardsProvider:
 dashboardsConfigMaps:
   - configMapName: my-dashboard-1
     fileName: my-dashboard-1.json
+
+admin:
+  existingSecret: "grafana-admin-credentials"
+  userKey: admin-user
+  passwordKey: admin-password
