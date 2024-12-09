@@ -11,6 +11,12 @@ persistence:
     - ReadWriteOnce
   size: 10Gi
 
-# admin:
-#   user: "admin"
-#   password: "v9QnhtxvZI"
+datasources:
+  secretName: datasource-secret
+
+dashboardsProvider:
+  enabled: true
+
+dashboardsConfigMaps:
+  - configMapName: my-dashboard-1
+    fileName: my-dashboard-1.json
