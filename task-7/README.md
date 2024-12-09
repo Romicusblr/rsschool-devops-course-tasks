@@ -66,3 +66,20 @@ helm install grafana bitnami/grafana \
   -f values-grafana.yaml \
   -n monitoring
 ```
+
+### Running Ansible Scripts to Set Up Monitoring with Grafana
+
+The Ansible playbooks included in this project can be used to set up monitoring with Grafana on your Kubernetes cluster. Below are the steps to run these playbooks:
+
+### Prerequisites
+- Ansible installed on your local machine.
+- SSH access to the target nodes where K3s will be installed.
+- Properly configured inventory file specifying the target nodes.
+
+### Example Usage
+1. Populate inventory.example with actual ip from terraform output
+
+2. Install K3s on the master and worker nodes
+```sh
+ansible-playbook -i inventory.ini monitoring.yaml
+```
