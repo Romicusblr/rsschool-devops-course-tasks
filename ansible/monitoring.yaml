@@ -1,0 +1,92 @@
+# code: language=ansible
+---
+- name: Install Grafana with Helm
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Add Helm repositories
+      kubernetes.core.helm_repository:
+        name: "{{ item.name }}"
+        repo_url: "{{ item.url }}"
+      loop:
+        - { name: prometheus-community, url: https://prometheus-community.github.io/helm-charts }
+        - { name: bitnami, url: https://charts.bitnami.com/bitnami }
+
+    - name: Create monitoring namespace
+      kubernetes.core.k8s:
+        name: monitoring
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Create admin credentials secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: grafana-admin-credentials
+            namespace: monitoring
+          type: Opaque
+          stringData:
+            admin-user: admin
+            admin-password: "{{ grafana_admin_password }}"
+
+    - name: Check if secret exists
+      ansible.builtin.command: kubectl get secret datasource-secret -n monitoring
+      register: secret_exists
+      ignore_errors: true
+      changed_when: false
+
+    - name: Create datasource secret from file
+      ansible.builtin.command: kubectl create secret generic datasource-secret --from-file=../task-7/datasource-secret.yaml -n monitoring
+      when: secret_exists.rc != 0
+      register: create_secret
+      changed_when: true
+      failed_when:
+        - create_secret.rc != 0
+        - '"AlreadyExists" not in create_secret.stderr'
+
+    - name: Check if ConfigMap exists
+      ansible.builtin.command: kubectl get configmap my-dashboard-1 -n monitoring
+      register: configmap_exists
+      ignore_errors: true
+      changed_when: false
+
+    - name: Create dashboard ConfigMap
+      ansible.builtin.command: kubectl create configmap my-dashboard-1 --from-file=../task-7/my-dashboard-1.json -n monitoring
+      when: configmap_exists.rc != 0
+      register: create_configmap
+      changed_when: false
+      failed_when:
+        - create_configmap.rc != 0
+        - '"AlreadyExists" not in create_configmap.stderr'
+
+    - name: Install prometheus
+      kubernetes.core.helm:
+        name: prometheus
+        chart_ref: bitnami/prometheus
+        release_namespace: monitoring
+        values_files:
+          - ../task-7/values-prometheus.yaml
+
+    - name: Install kube-state-metrics
+      kubernetes.core.helm:
+        name: kube-state-metrics
+        chart_ref: prometheus-community/kube-state-metrics
+        release_namespace: monitoring
+
+    - name: Install node-exporter
+      kubernetes.core.helm:
+        name: node-exporter
+        chart_ref: prometheus-community/prometheus-node-exporter
+        release_namespace: monitoring
+
+    - name: Install Grafana
+      kubernetes.core.helm:
+        name: grafana
+        chart_ref: bitnami/grafana
+        release_namespace: monitoring
+        values_files:
+          - ../task-7/values-grafana.yaml
