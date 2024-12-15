@@ -24,3 +24,18 @@ dashboardsConfigMaps:
 admin:
   existingSecret: "grafana-admin-credentials"
   existingSecretPasswordKey: admin-password
+
+smtp:
+  enabled: true
+  host: email-smtp.us-east-1.amazonaws.com:587
+  fromAddress: mastyka.raman@gmail.com
+  fromName: Grafana
+  existingSecret: grafana-smtp-secret
+  existingSecretUserKey: SMTP_USER
+  existingSecretPasswordKey: SMTP_PASSWORD
+
+notifiers:
+  configMapName: "grafana-notifiers"
+
+alerting:
+  configMapName: "grafana-alerting"
