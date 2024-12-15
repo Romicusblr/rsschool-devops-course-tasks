@@ -6,12 +6,7 @@ permissions:
   pull-requests: write
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 env:
   TF_VAR_account_id: ${{ vars.ACCOUNT_ID }}
