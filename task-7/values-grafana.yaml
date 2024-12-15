@@ -1,0 +1,26 @@
+service:
+  type: NodePort
+  port: 3000
+  nodePorts:
+    grafana: "32020"
+
+persistence:
+  enabled: true
+  storageClass: "local-path"  # Empty value to use the default StorageClass
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+
+datasources:
+  secretName: datasource-secret
+
+dashboardsProvider:
+  enabled: true
+
+dashboardsConfigMaps:
+  - configMapName: my-dashboard-1
+    fileName: my-dashboard-1.json
+
+admin:
+  existingSecret: "grafana-admin-credentials"
+  existingSecretPasswordKey: admin-password

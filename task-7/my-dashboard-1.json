@@ -1,0 +1,50 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Memory Usage",
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
+          "legendFormat": "Memory Used"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "CPU Usage",
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum(rate(node_cpu_seconds_total{mode!='idle'}[5m])) by (instance)",
+          "legendFormat": "CPU Used"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Storage Usage",
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "(node_filesystem_size_bytes{mountpoint=\"/\"} - node_filesystem_free_bytes{mountpoint=\"/\"}) / node_filesystem_size_bytes{mountpoint=\"/\"} * 100",
+          "legendFormat": "Disk Usage %"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "percent",
+          "min": 0,
+          "max": 100
+        }
+      ]
+    }
+  ],
+  "title": "Node Metrics",
+  "version": 1
+}
