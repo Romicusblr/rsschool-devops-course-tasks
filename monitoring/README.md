@@ -60,6 +60,24 @@ kubectl create configmap my-dashboard-1 \
   -n monitoring
 ```
 
+create a smtp secret
+```sh
+kubectl create secret generic grafana-smtp-secret \
+  --from-literal=SMTP_USER=<SMTP_USER> \
+  --from-literal=SMTP_PASSWORD=<SMTP_PASSWORD> \
+  -n monitoring
+```
+
+create notifiers config
+```sh
+kubectl apply -f grafana-notifiers.yaml -n monitoring
+```
+
+create alerting config
+```sh
+kubectl apply -f grafana-alerting.yaml -n monitoring
+```
+
 4. Install Grafana:
 ```sh
 helm install grafana bitnami/grafana \
